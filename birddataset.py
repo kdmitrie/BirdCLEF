@@ -1,11 +1,13 @@
 import numpy as np
 import pandas as pd
-from typing import Callable
-from torch.utils.data import Dataset, DataLoader
 from os import path
-import torchaudio
 import pickle
 
+import torch
+from torch.utils.data import Dataset, DataLoader
+import torchaudio
+
+from typing import Callable
 
 class BirdSplitDataset(Dataset):
     """Class used to split dataset into train/validation"""
