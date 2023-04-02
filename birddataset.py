@@ -31,7 +31,7 @@ class BirdTrainDataset(Dataset):
     multiple_dataset_len = 2000
     multiple_dataset_sample_rate = 320
 
-    def __init__(self, csv: str, path: str, duration:int=0, max_duration:int=0, transform:Callable=None, shuffle=True):
+    def __init__(self, csv: str, path: str, duration:int=0, max_duration:int=0, transform:Callable=None, shuffle=True, seed=42):
         """
             csv: path to csv file
             path: path to data files
@@ -39,6 +39,7 @@ class BirdTrainDataset(Dataset):
             max_duration: the total length of record in seconds. If less or equal to zero, not restricted
             transform: additional augmentations
             shuffle: whether to shuffle the order of items
+            seed: the seed number used for RNG
         """
         super().__init__()
         self.df = pd.read_csv(csv)
@@ -50,7 +51,8 @@ class BirdTrainDataset(Dataset):
         
         self.shuffle = np.arange(len(self.df))
         if shuffle:
-            np.random.shuffle(self.shuffle)
+            self.rng = random.default_rng(seed=seed)
+            rng.shuffle(self.shuffle)
         
         # If % is found inside path, it is considered multiple-dataset
         self._get_data = self._get_data_multiple if ('%' in path) else self._get_data_single
