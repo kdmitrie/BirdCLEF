@@ -142,7 +142,7 @@ class BirdTrainDataset(Dataset):
 class MultiBirdTrainDataset(BirdTrainDataset):
     def get_secondary_labels(self, index):
         secondary_birds = json.loads(self.df.iloc[index].secondary_labels.replace("'", '"'))
-        return [mbd.bird2index[bird] for bird in secondary_birds]
+        return [self.bird2index[bird] for bird in secondary_birds]
             
             
     def get_label(self, index):
