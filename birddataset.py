@@ -51,7 +51,7 @@ class BirdTrainDataset(Dataset):
         
         self.shuffle = np.arange(len(self.df))
         if shuffle:
-            self.rng = random.default_rng(seed=seed)
+            rng = np.random.default_rng(seed=seed)
             rng.shuffle(self.shuffle)
         
         # If % is found inside path, it is considered multiple-dataset
