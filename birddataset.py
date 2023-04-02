@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from os import path
 import pickle
+import json
 
 import torch
 from torch.utils.data import Dataset, DataLoader
@@ -58,8 +59,12 @@ class BirdTrainDataset(Dataset):
         self._get_data = self._get_data_multiple if ('%' in path) else self._get_data_single
             
             
-    def get_label(self, index):
+    def get_primary_label(self, index):
         return self.bird2index[self.df.loc[index].primary_label]
+
+        
+    def get_label(self, index):
+        return self.get_primary_label(index)
 
         
     def set_limit(self, limit, offset=0):
@@ -99,15 +104,15 @@ class BirdTrainDataset(Dataset):
         return self.limit
     
     
-    def _get_data_single(self, label, index):
+    def _get_data_single(self, primary_label, index):
         fname = path.join(self.path, self.df.loc[index].filename)
         data, sample_rate = torchaudio.load(fname)
         return data, sample_rate
         
     
-    def _get_data_multiple(self, label, index):
+    def _get_data_multiple(self, primary_label, index):
         dataset_num = 1 + index // self.multiple_dataset_len
-        fname = path.join(self.path % dataset_num, 'data', str(label), str(index))
+        fname = path.join(self.path % dataset_num, 'data', str(primary_label), str(index))
         with open(fname, 'rb') as f:
             data = pickle.load(f)
             sample_rate = self.multiple_dataset_sample_rate
@@ -116,9 +121,10 @@ class BirdTrainDataset(Dataset):
     
     def __getitem__(self, index):
         index = self._index_transform(index)
+        primary_label = self.get_primary_label(index)
         label = self.get_label(index)
         
-        data, sample_rate = self._get_data(label, index)
+        data, sample_rate = self._get_data(primary_label, index)
         
         if self.max_duration > 0:
             data = data[:, :, : sample_rate*self.max_duration]
@@ -130,3 +136,20 @@ class BirdTrainDataset(Dataset):
             data = self.transform(data)
         
         return data, label
+
+
+    
+class MultiBirdTrainDataset(BirdTrainDataset):
+    def get_secondary_labels(self, index):
+        #primary = self.bird2index[self.df.loc[index].primary_label]
+        secondary_birds = json.loads(df.iloc[index].secondary_labels.replace("'", '"'))
+        return [mbd.bird2index[bird] for bird in secondary_birds]
+            
+            
+    def get_label(self, index):
+        labels = np.zeros(len(self.index2bird))
+        primary = self.get_primary_label(index)
+        secondary =self.get_secondary_labels(index)
+        labels[primary] = 1
+        labels[secondary] = 1
+        return labels
