@@ -127,7 +127,7 @@ class BirdTrainDataset(Dataset):
         data, sample_rate = self._get_data(primary_label, index)
         
         if self.max_duration > 0:
-            data = data[:, :, : sample_rate*self.max_duration]
+            data = data[..., : sample_rate*self.max_duration]
         
         if self.duration > 0:
             data = self._pick_random_interval(data, sample_rate)
