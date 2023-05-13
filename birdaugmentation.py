@@ -6,7 +6,7 @@ from dataclasses import dataclass
 class BirdAugmentation:
     sampling_rate:int = 320
     time_shift:float = 1.
-    noise_level = 0.1
+    noise_level:float = 0.1
 
 
     def apply_time_shift(self, sig):
