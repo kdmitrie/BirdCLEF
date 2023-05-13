@@ -20,11 +20,12 @@ class BirdAugmentation:
         power = torch.sqrt(torch.sum(sig**2, dim=-1)/sig.shape[-1])
         degree = 0.5 + np.random.randn()
         noise = colorednoise.powerlaw_psd_gaussian(degree, sig.shape[-1])
-        return sig + self.noise_level * power * noise
+        sig = sig + self.noise_level * power * noise
+        return sig.float()
 
 
     def __call__(self, sig):
         sig = self.apply_time_shift(sig)
         sig = self.add_noise(sig)
         
-        return sig
+        return sig.float()
