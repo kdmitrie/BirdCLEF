@@ -1,9 +1,11 @@
+import torch
 import numpy as np
 import colorednoise
 from dataclasses import dataclass
 
 @dataclass
 class BirdAugmentation:
+    """The class to add some augmentations to audio data"""
     sampling_rate:int = 320
     time_shift:float = 1.
     noise_level:float = 0.1
