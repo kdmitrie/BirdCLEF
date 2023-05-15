@@ -1,5 +1,6 @@
 import torch
 import timm
+import math
 
 class Bird1DBlock(torch.nn.Module):
     sampling_rate = 32000
