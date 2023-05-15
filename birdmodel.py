@@ -2,6 +2,60 @@ import torch
 import timm
 import math
 
+
+
+class Bird1DBlock(torch.nn.Module):
+    sampling_rate = 32000
+    max_dilution = 7
+    
+    def __init__(self, conv_channels=64, kernel_size=5):
+        super(Bird1DBlock, self).__init__()
+        
+        kernels = 16
+        kernel_sizes = sorted(set(int(kernel_size * 2 ** (n/kernels)) for n in range(kernels)))
+        self.kernel_size = kernel_size
+        self.receptive_field = kernel_size * 4
+        self.min_length = 2**self.max_dilution * kernel_size * 6
+
+        self.input_conv = []
+        for n in range(self.max_dilution):
+            dilation = 2**n
+            for ks in kernel_sizes:
+                conv = torch.nn.Sequential(
+                    torch.nn.Conv1d(in_channels=1, out_channels=conv_channels, kernel_size=ks, padding=0, stride=self.kernel_size*dilation, dilation=dilation),
+                    torch.nn.ReLU(inplace=True),
+                    torch.nn.Conv1d(in_channels=conv_channels, out_channels=conv_channels, kernel_size=4, stride=2),
+                    torch.nn.ReLU(inplace=True),
+                    torch.nn.Conv1d(in_channels=conv_channels, out_channels=conv_channels, kernel_size=4, stride=2),
+                    torch.nn.ReLU(inplace=True),
+                )
+                setattr(self, f'conv_{n}_{ks}', conv)
+                self.input_conv += [conv, ]
+
+        
+    def forward(self, x):
+        #print('\t', x.shape)
+        
+        if x.shape[-1] < self.min_length:
+            x = torch.nn.functional.pad(x, (0, self.min_length - x.shape[-1]))
+        
+        conv_out_size = x.shape[-1] // (self.receptive_field)
+        input_conv_result = []
+        for conv in self.input_conv:
+            #conv.to(cuda)
+            y = conv(x)
+            #print('\t', y.shape)
+            y = torch.repeat_interleave(y, math.ceil(conv_out_size / y.shape[-1]), dim=-1)
+            y = y[..., :conv_out_size]
+            input_conv_result.append(y)
+
+        input_conv_result = torch.stack(input_conv_result, dim=1)
+        #print(input_conv_result.shape)
+
+        return torch.permute(input_conv_result, dims=[0, 2, 1, 3])
+    
+
+
 class Bird1DModel(torch.nn.Module):
     sampling_rate = 32000
     print = False
