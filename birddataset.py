@@ -38,7 +38,7 @@ class BirdSampleDataset(Dataset):
         item_select_probability = self.get_item_select_probability(labels)
 
         rng = np.random.default_rng(seed=seed)
-        self.index = rng.choice(range(len(base_dataset)), size=size, p=item_select_probability)
+        self.index = rng.choice(range(len(base_dataset)), size=self.size, p=item_select_probability)
 
 
     def get_item_select_probability(self, labels):
