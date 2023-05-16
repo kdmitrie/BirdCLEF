@@ -23,8 +23,38 @@ class BirdSplitDataset(Dataset):
     
     def __getitem__(self, idx):
         return self.base_dataset[self.start + idx]
+    
+    
+class BirdSampleDataset(Dataset):
+    """Class used to sample dataset from the base dataset according to the given probabilities array"""
+    def __init__(self, base_dataset, probabilities, size=-1, min_probability=0.01, seed=42):
+        super().__init__()
+        self.base_dataset = base_dataset
+        self.size = len(base_dataset) if size == -1 else size
+        self.probabilities = probabilities
+        self.min_probability = min_probability
+        
+        labels = base_dataset.get_primary_labels()
+        item_select_probability = self.get_item_select_probability(labels)
+
+        rng = np.random.default_rng(seed=seed)
+        self.index = rng.choice(range(len(base_dataset)), size=size, p=item_select_probability)
 
 
+    def get_item_select_probability(self, labels):
+        item_select_probability = np.clip(1 - self.probabilities[labels], self.min_probability, self.size)
+        return item_select_probability / np.sum(item_select_probability)
+        
+        
+    def __len__(self):
+        return self.size
+    
+
+    def __getitem__(self, idx):
+        return self.base_dataset[self.index[idx]]
+
+
+    
 class BirdTrainDataset(Dataset):
     """Base class for handling BirdCLEF competition"""
     limit : None = None
