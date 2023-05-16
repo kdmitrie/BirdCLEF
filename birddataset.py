@@ -63,6 +63,10 @@ class BirdTrainDataset(Dataset):
         return self.bird2index[self.df.loc[index].primary_label]
 
         
+    def get_primary_labels(self):
+        return [self.bird2index[label] for label in self.df.primary_label]
+
+        
     def get_label(self, index):
         return self.get_primary_label(index)
 
