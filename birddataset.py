@@ -27,22 +27,33 @@ class BirdSplitDataset(Dataset):
     
 class BirdSampleDataset(Dataset):
     """Class used to sample dataset from the base dataset according to the given probabilities array"""
-    def __init__(self, base_dataset, probabilities, size=-1, min_probability=0.01, seed=42):
+    def __init__(self, base_dataset, probabilities, size=-1, min_probability=1e-6, seed=42, pow=0.5):
+        # pow == 0 - don't account for class imbalance
+        # pow == 1 - all classes have equal probabilities
+
         super().__init__()
         self.base_dataset = base_dataset
         self.size = len(base_dataset) if size == -1 else size
         self.probabilities = probabilities
         self.min_probability = min_probability
-        
+        self.pow = pow
+
         labels = base_dataset.get_primary_labels()
         item_select_probability = self.get_item_select_probability(labels)
 
         rng = np.random.default_rng(seed=seed)
         self.index = rng.choice(range(len(base_dataset)), size=self.size, p=item_select_probability)
+        select_labels = np.array(labels)[self.index]
 
 
     def get_item_select_probability(self, labels):
-        item_select_probability = np.clip(1 - self.probabilities[labels], self.min_probability, self.size)
+        unique, counts = np.unique(labels, return_counts=True)
+        label_counts = np.ones(264)
+        label_counts[unique] += counts
+
+        class_select_probability = (1 - self.probabilities) / label_counts ** self.pow
+
+        item_select_probability = np.clip(class_select_probability[labels], self.min_probability, self.size)
         return item_select_probability / np.sum(item_select_probability)
         
         
