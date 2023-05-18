@@ -94,7 +94,7 @@ class BirdTrainDataset(Dataset):
 
         
     def get_primary_labels(self):
-        return [self.bird2index[label] for label in self.df.primary_label]
+        return [self.get_primary_label(index) for index in self.shuffle]
 
         
     def get_label(self, index):
