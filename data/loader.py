@@ -110,7 +110,7 @@ class DataProcessor(ABC):
 
 
 @dataclass
-class DataSave:
+class DataSaver:
     """Class for saving the data after some processing"""
     source: DataReader = None
     processor: DataProcessor = None

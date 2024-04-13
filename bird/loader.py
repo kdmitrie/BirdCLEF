@@ -19,6 +19,7 @@ class BirdItem(DataItem):
 class BirdReader(DataReader):
     """Class for reading the train and test data"""
     fs: int = 32000
+    dtype: np.dtype = np.float16
 
     def __init__(self, csv_file: str, ogg_path: str, limit: int = None):
         """
@@ -30,11 +31,11 @@ class BirdReader(DataReader):
         self.ogg_path = ogg_path
 
     def _get_one_item(self, item: object) -> DataItem:
-        """Reads the data from parquet files"""
-        label = BI[item.primary_label]
+        """Reads the data from ogg files"""
+        label = BI()[item.primary_label]
         fname = f'{self.ogg_path}/{item.filename}'
 
-        data, _ = librosa.load(fname, sr=self.fs)
+        data, _ = librosa.load(fname, sr=self.fs, dtype=self.dtype)
         data = librosa.util.normalize(data)
 
         item = BirdItem(data=data, label=label, fs=self.fs)
