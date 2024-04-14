@@ -32,10 +32,11 @@ class BirdReader(DataReader):
         """
         super().__init__(csv_file=csv_file, limit=limit)
         self.ogg_path = ogg_path
+        self.bi = BI()
 
     def _get_one_item(self, item: object) -> DataItem:
         """Reads the data from ogg files"""
-        label = BI()[item.primary_label]
+        label = self.bi[item.primary_label]
         fname = f'{self.ogg_path}/{item.filename}'
 
         data, _ = librosa.load(fname, sr=self.fs)
