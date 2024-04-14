@@ -3,7 +3,6 @@ import timm
 import math
 
 
-
 class Bird1DBlock(torch.nn.Module):
     sampling_rate = 32000
     max_dilution = 7
@@ -22,7 +21,8 @@ class Bird1DBlock(torch.nn.Module):
             dilation = 2**n
             for ks in kernel_sizes:
                 conv = torch.nn.Sequential(
-                    torch.nn.Conv1d(in_channels=1, out_channels=conv_channels, kernel_size=ks, padding=0, stride=self.kernel_size*dilation, dilation=dilation),
+                    torch.nn.Conv1d(in_channels=1, out_channels=conv_channels, kernel_size=ks, padding=0,
+                                    stride=self.kernel_size*dilation, dilation=dilation),
                     torch.nn.ReLU(inplace=True),
                     torch.nn.Conv1d(in_channels=conv_channels, out_channels=conv_channels, kernel_size=4, stride=2),
                     torch.nn.ReLU(inplace=True),
@@ -32,28 +32,22 @@ class Bird1DBlock(torch.nn.Module):
                 setattr(self, f'conv_{n}_{ks}', conv)
                 self.input_conv += [conv, ]
 
-        
     def forward(self, x):
-        #print('\t', x.shape)
-        
+        # If data length is less then minimal, we pad it with zeros
         if x.shape[-1] < self.min_length:
             x = torch.nn.functional.pad(x, (0, self.min_length - x.shape[-1]))
         
-        conv_out_size = x.shape[-1] // (self.receptive_field)
+        conv_out_size = x.shape[-1] // self.receptive_field
         input_conv_result = []
         for conv in self.input_conv:
-            #conv.to(cuda)
             y = conv(x)
-            #print('\t', y.shape)
             y = torch.repeat_interleave(y, math.ceil(conv_out_size / y.shape[-1]), dim=-1)
             y = y[..., :conv_out_size]
             input_conv_result.append(y)
 
         input_conv_result = torch.stack(input_conv_result, dim=1)
-        #print(input_conv_result.shape)
 
         return torch.permute(input_conv_result, dims=[0, 2, 1, 3])
-    
 
 
 class Bird1DModel(torch.nn.Module):
@@ -70,13 +64,13 @@ class Bird1DModel(torch.nn.Module):
         self.input_conv = Bird1DBlock(conv_channels=conv_channels, kernel_size=self.kernel_size)
         self.backbone = timm.create_model('resnet18d', pretrained=True, in_chans=conv_channels, num_classes=264)
         self.replace_bn_with_instance_norm()
-    
         
     def replace_bn_with_instance_norm(self):
         resnet18 = self.backbone
         resnet18.norm_layers = []
+
         def get_inorm(layer):
-            norm_layer = torch.nn.InstanceNorm2d(num_features = layer.num_features, 
+            norm_layer = torch.nn.InstanceNorm2d(num_features=layer.num_features,
                                                  eps=layer.eps, 
                                                  momentum=layer.momentum, 
                                                  affine=layer.affine, 
@@ -95,8 +89,8 @@ class Bird1DModel(torch.nn.Module):
                 getattr(resnet18, f'layer{ln}')[bn].bn2 = get_inorm(getattr(resnet18, f'layer{ln}')[bn].bn2)
 
         for ln in range(2, 5):
-            getattr(resnet18, f'layer{ln}')[0].downsample[2] = get_inorm(getattr(resnet18, f'layer{ln}')[0].downsample[2])    
-
+            getattr(resnet18, f'layer{ln}')[0].downsample[2] = (
+                get_inorm(getattr(resnet18, f'layer{ln}')[0].downsample[2]))
         
     def predict(self, x):
         if self.print:
@@ -107,7 +101,8 @@ class Bird1DModel(torch.nn.Module):
             print('After conv:', x.shape)
         
         # Transform data so, that each interval correspond to individual item
-        x = x.reshape((*x.shape[0:3], x.shape[-1] * self.input_conv.receptive_field // (self.sampling_rate * self.step), -1))
+        x = x.reshape((*x.shape[0:3],
+                       x.shape[-1] * self.input_conv.receptive_field // (self.sampling_rate * self.step), -1))
         x = torch.permute(x, (0, 3, 1, 2, 4))
         
         x = x.reshape((x.shape[0]*x.shape[1], *x.shape[2:]))
@@ -122,7 +117,6 @@ class Bird1DModel(torch.nn.Module):
         
         return x
 
-
     def forward(self, x):
         if self.print:
             print('Initial x:', x.shape)
@@ -132,9 +126,10 @@ class Bird1DModel(torch.nn.Module):
             print('After conv:', x.shape)
         
         # Transform data so, that each interval correspond to individual item
-        timestep = self.sampling_rate * self.duration // (self.input_conv.receptive_field)
+        timestep = self.sampling_rate * self.duration // self.input_conv.receptive_field
         if x.shape[-1] > timestep:
-            data = [x[..., start:start + timestep] for start in range(0, x.shape[-1] - timestep, self.sampling_rate * self.step // self.input_conv.receptive_field)]
+            data = [x[..., start:start + timestep] for start in
+                    range(0, x.shape[-1] - timestep, self.sampling_rate * self.step // self.input_conv.receptive_field)]
             x = torch.cat(data)
         else:
             x = torch.nn.functional.pad(x, (0, timestep - x.shape[-1]))
