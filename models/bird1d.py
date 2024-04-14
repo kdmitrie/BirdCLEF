@@ -1,6 +1,7 @@
 import torch
 import timm
 from .adaptive_filter import AdaptiveFilter
+from .modifier import replace_batchnorm2d_by_instancenorm2d
 
 
 class Bird1DModel(torch.nn.Module):
@@ -74,34 +75,7 @@ class Bird1DModel(torch.nn.Module):
         self._time_interval = time_interval // self.filter.get_receptive_field()
         self._time_shift = time_shift // self.filter.get_receptive_field()
 
-        # self.replace_bn_with_instance_norm()
-
-    def replace_bn_with_instance_norm(self):
-        resnet18 = self.backbone
-        resnet18.norm_layers = []
-
-        def get_inorm(layer):
-            norm_layer = torch.nn.InstanceNorm2d(num_features=layer.num_features,
-                                                 eps=layer.eps,
-                                                 momentum=layer.momentum,
-                                                 affine=layer.affine,
-                                                 track_running_stats=layer.track_running_stats)
-            norm_layer.load_state_dict(layer.state_dict())
-            resnet18.norm_layers.append(norm_layer)
-            return norm_layer
-
-        resnet18.conv1[1] = get_inorm(resnet18.conv1[1])
-        resnet18.conv1[4] = get_inorm(resnet18.conv1[4])
-        resnet18.bn1 = get_inorm(resnet18.bn1)
-
-        for ln in range(1, 5):
-            for bn in range(2):
-                getattr(resnet18, f'layer{ln}')[bn].bn1 = get_inorm(getattr(resnet18, f'layer{ln}')[bn].bn1)
-                getattr(resnet18, f'layer{ln}')[bn].bn2 = get_inorm(getattr(resnet18, f'layer{ln}')[bn].bn2)
-
-        for ln in range(2, 5):
-            getattr(resnet18, f'layer{ln}')[0].downsample[2] = (
-                get_inorm(getattr(resnet18, f'layer{ln}')[0].downsample[2]))
+        replace_batchnorm2d_by_instancenorm2d(self.backbone)
 
     def __predict(self, x):
         if self.print:
