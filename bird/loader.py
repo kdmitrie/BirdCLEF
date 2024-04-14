@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import numpy as np
 import librosa
 from dataclasses import dataclass
@@ -15,6 +17,8 @@ class BirdItem(DataItem):
     def __repr__(self):
         return super().__repr__()
 
+    def as_xy(self) -> Tuple:
+        return (self.data, self.label)
 
 class BirdReader(DataReader):
     """Class for reading the train and test data"""

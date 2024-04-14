@@ -2,13 +2,13 @@ import numpy as np
 import pandas as pd
 import pickle
 from dataclasses import dataclass, field
-from typing import List, Union, Callable, Optional
+from typing import List, Union, Callable, Tuple
 from abc import ABC, abstractmethod
 from pathlib import Path
 
 
 @dataclass
-class DataItem:
+class DataItem(ABC):
     """Base class, that represents a data item"""
 
     def __repr__(self) -> str:
@@ -32,6 +32,10 @@ class DataItem:
             shapes.append('-' * 80)
 
         return '\n'.join(shapes + values)
+
+    @abstractmethod
+    def as_xy(self) -> Tuple:
+        return []
 
 
 @dataclass
