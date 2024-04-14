@@ -143,7 +143,7 @@ class Bird1DModel(torch.nn.Module):
         # Process data in batches
         x = self.backbone(x)
         x = self.classifier(x)
-        x = self.softmax(x)
+        x = self._softmax(x)
 
         # Calculate the probability of each class existance at least once
         x = 1 - torch.prod(1 - x, dim=0)
