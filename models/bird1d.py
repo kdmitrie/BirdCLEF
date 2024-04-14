@@ -69,7 +69,7 @@ class Bird1DModel(torch.nn.Module):
         self.backbone = timm.create_model(backbone, pretrained=True, in_chans=filter_channels, num_classes=num_classes)
         self.classifier = self.backbone.get_classifier()
         self.backbone.reset_classifier(0)
-        self._softmax = torch.nn.Softmax(dim=-1)
+        self._softmax = torch.nn.Softmax(dim=1)
 
         self._time_interval = time_interval // self.filter.get_receptive_field()
         self._time_shift = time_shift // self.filter.get_receptive_field()
@@ -133,6 +133,7 @@ class Bird1DModel(torch.nn.Module):
         # Apply adaptive filtering
         x = self.filter(x)
 
+        # Split data and create a batch
         if x.shape[-1] > self._time_interval:
             data = [x[..., start:start + self._time_interval] for start in
                     range(0, x.shape[-1] - self._time_interval, self._time_shift)]
@@ -142,10 +143,12 @@ class Bird1DModel(torch.nn.Module):
 
         # Process data in batches
         x = self.backbone(x)
+        x = torch.squeeze(x, dim=-1)
+
         x = self.classifier(x)
         x = self._softmax(x)
 
-        # Calculate the probability of each class existance at least once
+        # Calculate the probability of each class existence at least once
         x = 1 - torch.prod(1 - x, dim=0)
 
         return x[None, ...]
