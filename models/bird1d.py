@@ -30,7 +30,9 @@ class Bird1DModel(torch.nn.Module):
                  filter_min_kernel_size: int = 32,
 
                  time_interval: int = 160000,
-                 time_shift: int = 160000
+                 time_shift: int = 160000,
+
+                 replace_bn: bool = True
                  ):
         """
         Parameters
@@ -57,6 +59,9 @@ class Bird1DModel(torch.nn.Module):
 
         time_shift : int
             the shift between the beginnings of two adjacent time intervals (default 160000)
+
+        replace_bn: bool
+            whether or not to replace batch norm layer in the backbone
         """
 
         super().__init__()
@@ -75,7 +80,8 @@ class Bird1DModel(torch.nn.Module):
         self._time_interval = time_interval // self.filter.get_receptive_field()
         self._time_shift = time_shift // self.filter.get_receptive_field()
 
-        replace_batchnorm2d_by_instancenorm2d(self.backbone)
+        if replace_bn:
+            replace_batchnorm2d_by_instancenorm2d(self.backbone)
 
     def __predict(self, x):
         if self.print:
