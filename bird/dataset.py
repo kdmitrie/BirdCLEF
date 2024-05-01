@@ -76,6 +76,10 @@ class BirdDataset(torch.utils.data.Dataset):
         else:
             data, _ = librosa.load(f'/kaggle/input/birdclef-2024/train_audio/{item.filename}', sr=self.cfg.FS)
             data = data[:self.cfg.FS * self.cfg.max_duration]
+            pad = np.ceil(len(data) / (self.cfg.FS * self.CFG.STEP)) * self.cfg.FS * self.CFG.STEP - len(data)
+            if pad > 0:
+                data = np.pad(data, (0, pad))
+
             data = librosa.util.normalize(data)
 
         if len(data) < self.cfg.max_duration * self.cfg.FS:
