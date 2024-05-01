@@ -6,7 +6,6 @@ import torch
 import torchaudio
 from typing import List
 
-from config import CFG
 from ..data.dataset import IndexedDataset
 
 
@@ -55,7 +54,7 @@ class BirdDataset(torch.utils.data.Dataset):
 
     def get_onehot_labels(self, item):
         secondary_labels = re.sub('\'|\[|\]| ', '', item.secondary_labels).split(',')
-        onehot = np.zeros(CFG.num_classes)
+        onehot = np.zeros(self.cfg.num_classes)
         indices = [self.l2i[item.primary_label]]
         indices += [self.l2i[label] for label in secondary_labels if label in self.l2i.keys()]
         onehot[indices] = 1
