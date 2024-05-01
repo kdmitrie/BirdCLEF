@@ -78,7 +78,7 @@ class BirdDataset(torch.utils.data.Dataset):
             data = data[:self.cfg.FS * self.cfg.max_duration]
             pad = np.ceil(len(data) / (self.cfg.FS * self.cfg.STEP)) * self.cfg.FS * self.cfg.STEP - len(data)
             if pad > 0:
-                data = np.pad(data, (0, pad))
+                data = np.pad(data, (0, int(pad)))
 
             data = librosa.util.normalize(data)
 
