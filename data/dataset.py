@@ -1,5 +1,6 @@
-from torch.utils.data import Dataset
 import numpy as np
+import psutil
+from torch.utils.data import Dataset
 from typing import Callable, Tuple, List
 from .loader import DataProvider
 
@@ -58,3 +59,24 @@ class IndexedDataset(Dataset):
 
     def __len__(self):
         return len(self.indices)
+
+
+class CachedDataset(Dataset):
+    def __init__(self, base_dataset, limit_gb=28):
+        self.ds = base_dataset
+        self.limit = limit_gb * 1024 ** 3
+        self.cache = {}
+        self.proc = psutil.Process()
+
+    def __len__(self):
+        return len(self.ds)
+
+    def __getitem__(self, index):
+        if index in self.cache.keys():
+            return self.cache[index]
+
+        item = self.ds[index]
+
+        if self.proc.memory_info().rss < self.limit:
+            self.cache[index] = item
+        return item
