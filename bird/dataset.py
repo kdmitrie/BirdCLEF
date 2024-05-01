@@ -1,3 +1,4 @@
+import librosa
 import numpy as np
 import pandas as pd
 import pickle
@@ -10,6 +11,7 @@ from ..data.dataset import IndexedDataset
 
 
 class BirdDataset(torch.utils.data.Dataset):
+    use_waveforms: bool = False
     def __init__(self, cfg):
         self._df = pd.read_csv(cfg.train_csv)
         self.df = self._df
@@ -69,11 +71,13 @@ class BirdDataset(torch.utils.data.Dataset):
     def __getitem__(self, index):
         item = self.df.iloc[index]
 
-        # data, _ = librosa.load(f'/kaggle/input/birdclef-2024/train_audio/{item.filename}', sr=self.cfg.FS)
-        # data = data[:self.cfg.FS * self.cfg.max_duration]
-        # data = librosa.util.normalize(data)
+        if self.use_waveforms:
+            data = self.waveforms[item.initial_index].astype(np.float32)
+        else:
+            data, _ = librosa.load(f'/kaggle/input/birdclef-2024/train_audio/{item.filename}', sr=self.cfg.FS)
+            data = data[:self.cfg.FS * self.cfg.max_duration]
+            data = librosa.util.normalize(data)
 
-        data = self.waveforms[item.initial_index].astype(np.float32)
         if len(data) < self.cfg.max_duration * self.cfg.FS:
             data = np.pad(data, (0, self.cfg.max_duration * self.cfg.FS - len(data)))
 
