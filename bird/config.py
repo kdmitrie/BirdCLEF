@@ -8,6 +8,8 @@ class CFG:
     batch_size = 16
 
     FS = 32000
+    DURATION = 5
+    STEP = 1
     min_rating = 4.5
     num_classes = 182
 
