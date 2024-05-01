@@ -12,7 +12,7 @@ from ..data.dataset import IndexedDataset
 
 class BirdDataset(torch.utils.data.Dataset):
     use_waveforms: bool = False
-    def __init__(self, cfg):
+    def __init__(self, cfg, get_label='onehot'):
         self._df = pd.read_csv(cfg.train_csv)
         self.df = self._df
         self.df['initial_index'] = np.arange(len(self.df))
@@ -36,6 +36,7 @@ class BirdDataset(torch.utils.data.Dataset):
         amplitude_to_db = torchaudio.transforms.AmplitudeToDB(top_db=self.cfg.sg['top_db'])
 
         self.get_sg = torch.nn.Sequential(mel_spec, amplitude_to_db)
+        self.get_label = get_label
 
     def create_labels(self, sample_csv):
         df = pd.read_csv(sample_csv)
@@ -89,8 +90,14 @@ class BirdDataset(torch.utils.data.Dataset):
         data = torch.tensor(data)
         s_db = self.get_sg(data)[None, ...]
 
-        # label = self.get_primary_label(item)
-        label = self.get_onehot_labels(item)
+        if self.get_label == 'primary':
+            label = self.get_primary_label(item)
+        elif self.get_label == 'onehot':
+            label = self.get_onehot_labels(item)
+        elif callable(self.get_label):
+            label = self.get_label(item)
+        else:
+            label = None
 
         return s_db, label
 
