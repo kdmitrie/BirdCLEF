@@ -82,8 +82,9 @@ class BirdDataset(torch.utils.data.Dataset):
 
             data = librosa.util.normalize(data)
 
-        if len(data) < self.cfg.max_duration * self.cfg.FS:
-            data = np.pad(data, (0, self.cfg.max_duration * self.cfg.FS - len(data)))
+        # If data is to small, pad it to max_duration
+        #if len(data) < self.cfg.max_duration * self.cfg.FS:
+        #    data = np.pad(data, (0, self.cfg.max_duration * self.cfg.FS - len(data)))
 
         data = torch.tensor(data)
         s_db = self.get_sg(data)[None, ...]
