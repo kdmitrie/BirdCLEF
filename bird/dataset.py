@@ -122,7 +122,7 @@ class BirdDataset(torch.utils.data.Dataset):
             if len(chunk) < min_class_samples:
                 additional = np.random.choice(chunk, min_class_samples - len(chunk))
                 result.append(additional)
-        return result
+        return np.concatenate(result)
 
     def dump_indices(self, pkl):
         with open(pkl, 'wb') as f:
