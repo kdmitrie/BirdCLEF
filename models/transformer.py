@@ -81,9 +81,5 @@ class BirdTransformer(torch.nn.Module):
 
     def forward_classification(self, x):
         y = self.segmentation(x)
-        print(y.shape)
-        y = torch.logsumexp(y, -1).squeeze(-1) - torch.Tensor([x.shape[-1]]).to(x.device).log()
-
-        print(x.shape, y.shape)
-
+        y = torch.logsumexp(y, -1).squeeze(-1) - torch.Tensor([x.shape[-1]]).to(y.device).log()
         return y
