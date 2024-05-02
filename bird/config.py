@@ -4,6 +4,7 @@ import torch
 class CFG:
     train_csv = '/kaggle/input/birdclef-2024/train_metadata.csv'
     sample_csv = '/kaggle/input/birdclef-2024/sample_submission.csv'
+    min_duration = None
     max_duration = 30
     batch_size = 16
 

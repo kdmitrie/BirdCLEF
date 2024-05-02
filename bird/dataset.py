@@ -12,6 +12,7 @@ from ..data.dataset import IndexedDataset
 
 class BirdDataset(torch.utils.data.Dataset):
     use_waveforms: bool = False
+
     def __init__(self, cfg, get_label='onehot'):
         self._df = pd.read_csv(cfg.train_csv)
         self.df = self._df
@@ -84,8 +85,8 @@ class BirdDataset(torch.utils.data.Dataset):
             data = librosa.util.normalize(data)
 
         # If data is to small, pad it to max_duration
-        #if len(data) < self.cfg.max_duration * self.cfg.FS:
-        #    data = np.pad(data, (0, self.cfg.max_duration * self.cfg.FS - len(data)))
+        if (self.cfg.min_duration is not None) and (len(data) < self.cfg.min_duration * self.cfg.FS):
+            data = np.pad(data, (0, self.cfg.min_duration * self.cfg.FS - len(data)))
 
         data = torch.tensor(data)
         s_db = self.get_sg(data)[None, ...]
