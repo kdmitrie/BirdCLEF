@@ -102,14 +102,27 @@ class BirdDataset(torch.utils.data.Dataset):
 
         return s_db, label
 
-    def train_test_split(self, part=0.2):
+    def train_test_split(self, part=0.2, min_class_samples_train: int = 0, min_class_samples_test: int = 0):
         ll = len(self)
         self.indices = np.arange(0, ll)
         np.random.shuffle(self.indices)
-        val_indices = self.indices[:int(part * ll)]
+        test_indices = self.indices[:int(part * ll)]
         train_indices = self.indices[int(part * ll):]
 
-        return IndexedDataset(self, train_indices), IndexedDataset(self, val_indices)
+        test_indices = self._oversample(test_indices, min_class_samples_test)
+        train_indices = self._oversample(train_indices, min_class_samples_train)
+
+        return IndexedDataset(self, train_indices), IndexedDataset(self, test_indices)
+
+    def _oversample(self, indices: np.ndarray, min_class_samples: int = 0) -> np.ndarray:
+        local_df = self.df.iloc[indices]
+        result = [indices]
+        for label in local_df.primary_label.unique():
+            chunk = local_df[local_df.primary_label == label].index.to_numpy()
+            if len(chunk) < min_class_samples:
+                additional = np.random.choice(chunk, min_class_samples - len(chunk))
+                result.append(additional)
+        return result
 
     def dump_indices(self, pkl):
         with open(pkl, 'wb') as f:
