@@ -78,9 +78,9 @@ class BirdTransformer(torch.nn.Module):
             lselogits = torch.log((cselogits[..., 0, b] - cselogits[..., 0, a]))
             logsumexplogits.append(lselogits)
         result = torch.stack(logsumexplogits, dim=-2)
-        result = self.seg_head(result)
         if not self.predict_last:
             result = result[..., :-1, :]
+        result = self.seg_head(result)
         return result
 
     def forward_classification(self, x):
