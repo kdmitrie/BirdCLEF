@@ -65,21 +65,20 @@ class BirdTransformer(torch.nn.Module):
         return y
 
     def forward_segmentation(self, x):
-        def forward_segmentation(self, x):
-            logits = self.segmentation(x)
-            elogits = torch.exp(logits)
+        logits = self.segmentation(x)
+        elogits = torch.exp(logits)
 
-            cselogits = torch.cumsum(elogits, dim=-1)
-            cselogits = torch.cat((torch.zeros((*cselogits.shape[:-1], 1)), cselogits), dim=-1)
+        cselogits = torch.cumsum(elogits, dim=-1)
+        cselogits = torch.cat((torch.zeros((*cselogits.shape[:-1], 1)), cselogits), dim=-1)
 
-            logsumexplogits = []
-            for start in range(x.shape[-1] * 512 // CFG.FS - CFG.DURATION + 1):
-                a, b = self.sec2sample(start), self.sec2sample(start + CFG.DURATION)
-                lselogits = torch.log((cselogits[..., 0, b] - cselogits[..., 0, a]))
-                logsumexplogits.append(lselogits)
-            result = torch.stack(logsumexplogits, dim=-2)
-            result = self.seg_head(result)
-            return result
+        logsumexplogits = []
+        for start in range(x.shape[-1] * 512 // CFG.FS - CFG.DURATION + 1):
+            a, b = self.sec2sample(start), self.sec2sample(start + CFG.DURATION)
+            lselogits = torch.log((cselogits[..., 0, b] - cselogits[..., 0, a]))
+            logsumexplogits.append(lselogits)
+        result = torch.stack(logsumexplogits, dim=-2)
+        result = self.seg_head(result)
+        return result
 
     def forward_classification(self, x):
         y = self.segmentation(x)
