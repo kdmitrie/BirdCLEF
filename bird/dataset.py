@@ -77,17 +77,17 @@ class BirdDataset(torch.utils.data.Dataset):
             data = self.waveforms[item.initial_index].astype(np.float32)
         else:
             data, _ = librosa.load(f'/kaggle/input/birdclef-2024/train_audio/{item.filename}', sr=self.cfg.FS)
-            data = data[:self.cfg.FS * self.cfg.max_duration]
-            pad = np.ceil(len(data) / (self.cfg.FS * self.cfg.STEP)) * self.cfg.FS * self.cfg.STEP - len(data)
-            if pad > 0:
-                data = np.pad(data, (0, int(pad)))
-
             data = librosa.util.normalize(data)
 
-        # If data is to small, pad it to max_duration
+        # 1. If data is to small, pad it to min_duration
         if (self.cfg.min_duration is not None) and (len(data) < self.cfg.min_duration * self.cfg.FS):
             data = np.pad(data, (0, self.cfg.min_duration * self.cfg.FS - len(data)))
 
+        # 2. Cut the data to integer number of steps
+        data_len = len(data) // (self.cfg.STEP * self.cfg.FS) * (self.cfg.STEP * self.cfg.FS)
+        data = data[:data_len]
+
+        # 3. Transform it into a tensor and into a SG
         data = torch.tensor(data)
         s_db = self.get_sg(data)[None, ...]
 
