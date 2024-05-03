@@ -22,7 +22,6 @@ class AttnBlock(torch.nn.Module):
 
 class BirdTransformer(torch.nn.Module):
     augmentations: Optional[Callable] = None
-    predict_last: int = 0
 
     def __init__(self, backbone='resnet18', num_classes=1, task='classification'):
         super().__init__()
@@ -66,19 +65,21 @@ class BirdTransformer(torch.nn.Module):
         return y
 
     def forward_segmentation(self, x):
-        logits = self.segmentation(x)
+        def forward_segmentation(self, x):
+            logits = self.segmentation(x)
+            elogits = torch.exp(logits)
 
-        elogits = torch.exp(logits)
-        cselogits = torch.cumsum(elogits, dim=-1)
+            cselogits = torch.cumsum(elogits, dim=-1)
+            cselogits = torch.cat((torch.zeros((*cselogits.shape[:-1], 1)), cselogits), dim=-1)
 
-        logsumexplogits = []
-        for start in range(x.shape[-1] * 512 // CFG.FS - CFG.DURATION + self.predict_last):
-            a, b = self.sec2sample(start), self.sec2sample(start + CFG.DURATION)
-            lselogits = torch.log((cselogits[..., 0, b] - cselogits[..., 0, a]))
-            logsumexplogits.append(lselogits)
-        result = torch.stack(logsumexplogits, dim=-2)
-        result = self.seg_head(result)
-        return result
+            logsumexplogits = []
+            for start in range(x.shape[-1] * 512 // CFG.FS - CFG.DURATION + 1):
+                a, b = self.sec2sample(start), self.sec2sample(start + CFG.DURATION)
+                lselogits = torch.log((cselogits[..., 0, b] - cselogits[..., 0, a]))
+                logsumexplogits.append(lselogits)
+            result = torch.stack(logsumexplogits, dim=-2)
+            result = self.seg_head(result)
+            return result
 
     def forward_classification(self, x):
         y = self.segmentation(x)
