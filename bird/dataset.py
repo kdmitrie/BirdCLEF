@@ -47,11 +47,14 @@ class BirdDataset(torch.utils.data.Dataset):
     def __len__(self):
         return len(self.df)
 
-    def use_good(self, use_good=True, min_rating=5, min_records=500):
+    def use_good(self, use_good=True, min_rating=5, max_rating=5, min_records=500):
         if use_good:
             vc = self._df.primary_label.value_counts()
             self.df = self._df[
-                self._df.primary_label.isin(vc[vc >= min_records].index) & (self._df.rating >= min_rating)].reset_index(
+                self._df.primary_label.isin(vc[vc >= min_records].index) &
+                (self._df.rating >= min_rating) &
+                (self._df.rating <= max_rating)
+            ].reset_index(
                 drop=True)
         else:
             self.df = self._df
