@@ -22,6 +22,7 @@ class AttnBlock(torch.nn.Module):
 
 class BirdTransformer(torch.nn.Module):
     augmentations: Optional[Callable] = None
+    predict_last: bool = False
 
     def __init__(self, backbone='resnet18', num_classes=1, task='classification'):
         super().__init__()
@@ -78,6 +79,8 @@ class BirdTransformer(torch.nn.Module):
             logsumexplogits.append(lselogits)
         result = torch.stack(logsumexplogits, dim=-2)
         result = self.seg_head(result)
+        if not self.predict_last:
+            result = result[..., :-1, :]
         return result
 
     def forward_classification(self, x):
