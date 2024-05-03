@@ -71,7 +71,7 @@ class BirdTransformer(torch.nn.Module):
         cselogits = torch.cumsum(elogits, dim=-1)
 
         logsumexplogits = []
-        for start in range(x.shape[-1] * 512 // CFG.FS - CFG.DURATION):
+        for start in range(x.shape[-1] * 512 // CFG.FS - CFG.DURATION + 1):
             a, b = self.sec2sample(start), self.sec2sample(start + CFG.DURATION)
             lselogits = torch.log((cselogits[..., 0, b] - cselogits[..., 0, a]))
             logsumexplogits.append(lselogits)
