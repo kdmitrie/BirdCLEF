@@ -83,8 +83,10 @@ class BirdDataset(torch.utils.data.Dataset):
         if (self.cfg.min_duration is not None) and (len(data) < self.cfg.min_duration * self.cfg.FS):
             data = np.pad(data, (0, self.cfg.min_duration * self.cfg.FS - len(data)))
 
-        # 2. Cut the data to integer number of steps
+        # 2. Cut the data to integer number of steps no more than max_duration
         data_len = len(data) // (self.cfg.STEP * self.cfg.FS) * (self.cfg.STEP * self.cfg.FS)
+        if self.cfg.max_duration is not None:
+            data_len = min(data_len, self.cfg.max_duration * self.cfg.FS)
         data = data[:data_len]
 
         # 3. Transform it into a tensor and into a SG
