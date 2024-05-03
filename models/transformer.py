@@ -70,7 +70,8 @@ class BirdTransformer(torch.nn.Module):
         elogits = torch.exp(logits)
 
         cselogits = torch.cumsum(elogits, dim=-1)
-        cselogits = torch.cat((torch.zeros((*cselogits.shape[:-1], 1)), cselogits), dim=-1)
+        zeros = torch.zeros((*cselogits.shape[:-1], 1)).to(x.device)
+        cselogits = torch.cat((zeros, cselogits), dim=-1)
 
         logsumexplogits = []
         for start in range(x.shape[-1] * 512 // CFG.FS - CFG.DURATION + 1):
