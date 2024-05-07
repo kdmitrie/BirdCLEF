@@ -44,7 +44,7 @@ class CFG:
         "mask_x_length": (10, 50),
         "fill_value": 0,
         "p": 0.3
-    },
+    }
 
     noiser = {
 

@@ -19,7 +19,7 @@ class Noiser:
         self.ss_df = pd.read_csv(self.cfg['ss_csv'])
 
         short_categories = ['frog', 'car_horn', 'rain', 'crickets']
-        self.short_df = pd.read_csv('/kaggle/input/noise-audio-data/ESC-50-master/meta/esc50.csv')
+        self.short_df = pd.read_csv(self.cfg['short_csv'])
         self.short_df = self.short_df[self.short_df.category.isin(short_categories)]
 
         self.voice_air = audiomentations.AirAbsorption(**self.cfg['voice_air'])
