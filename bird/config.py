@@ -30,12 +30,12 @@ class CFG:
         'top_db': 80.0
     }
 
-    noiser = {
-        'nocalls': '/kaggle/input/bc23-dataset-without-birds/nocalls.pkl',
-        'spectra': '/kaggle/input/bc23-dataset-without-birds/noise_spectra.pkl',
-        'p': 0.5,
-        'A': 0.01
-    }
+    # noiser = {
+    #    'nocalls': '/kaggle/input/bc23-dataset-without-birds/nocalls.pkl',
+    #    'spectra': '/kaggle/input/bc23-dataset-without-birds/noise_spectra.pkl',
+    #    'p': 0.5,
+    #    'A': 0.01
+    # }
 
     aug_params = {
         "num_masks_x": (2, 10),
@@ -44,4 +44,53 @@ class CFG:
         "mask_x_length": (10, 50),
         "fill_value": 0,
         "p": 0.3
+    },
+
+    noiser = {
+
+        'voice_csv': '/kaggle/input/bc24-add-noise/hindi-speech-classification/dataset/train.csv',
+        'voice_path': '/kaggle/input/bc24-add-noise/hindi-speech-classification/dataset/train',
+        'voice_p': 0.1,
+        'voice_n': 5,
+        'voice_A': 1,
+        'voice_air': {
+            'min_distance': 200,
+            'max_distance': 400,
+            'p': 1,
+        },
+
+        'music_path': '/kaggle/input/bc24-add-noise/bc24-hindi-songs/india-songs.mp3',
+        'music_p': 0.1,
+        'music_n': 1,
+        'music_A': 5,
+        'music_air': {
+            'min_distance': 3000,
+            'max_distance': 10000,
+            'p': 1,
+        },
+
+        'short_csv': '/kaggle/input/bc24-add-noise/noise-audio-data/ESC-50-master/meta/esc50.csv',
+        'short_path': '/kaggle/input/bc24-add-noise/noise-audio-data/ESC-50-master/audio',
+        'short_p': 0.1,
+        'short_n': 4,
+        'short_A': 10,
+        'short_air': {
+            'min_distance': 10,
+            'max_distance': 1000,
+            'p': 1,
+        },
+
+        'vehicle_csv': '/kaggle/input/bc24-add-noise/vehicle-type-sound-dataset/vehicle_type_sound_dataset/labels.csv',
+        'vehicle_path': '/kaggle/input/bc24-add-noise/vehicle-type-sound-dataset/vehicle_type_sound_dataset',
+        'vehicle_p': 0.1,
+        'vehicle_n': 5,
+        'vehicle_A': 1,
+        'vehicle_air': {
+            'min_distance': 10,
+            'max_distance': 1000,
+            'p': 1,
+        },
+
+        'ss_csv': '/kaggle/input/birdclef-2024/train_metadata.csv',
+        'ss_path': '/kaggle/input/birdclef-2024/unlabeled_soundscapes',
     }
