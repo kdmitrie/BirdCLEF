@@ -71,7 +71,7 @@ class Noiser:
     def random_ss(self, duration=30):
         offset = np.random.randint(240 - duration)
         path = self.cfg['ss_path']
-        fname = os.listdir(self.cfg['ss_path'])[np.random.randint(8444)]
+        fname = os.listdir(path)[np.random.randint(8444)]
 
         data = self.read(f'{path}/{fname}', offset=offset, duration=duration)
         return data
@@ -94,15 +94,20 @@ class Noiser:
         return waveform
 
     def random_sg(self, duration=30):
-        soundscape = self.random_ss(duration)
-        soundscape = torch.Tensor(soundscape)
-        soundscape_sg = self.sparse_sg(soundscape)
-
         noise = self.random_sound(duration)
         noise = torch.Tensor(noise)
         noise_sg = self.get_sg[0](noise).numpy()
 
-        return soundscape_sg + noise_sg, soundscape_sg, noise_sg
+        while True:
+            soundscape = self.random_ss(duration)
+            soundscape = torch.Tensor(soundscape)
+            soundscape_sg = self.sparse_sg(soundscape)
+            if soundscape_sg.shape == noise_sg.shape:
+                break
+
+        sg = soundscape_sg + noise_sg
+        sg = np.clip(sg, 1e-20, None)
+        return 20 * np.log10(sg)
 
     def sparse_sg(self, waveform, part=5e-4):
         sg0 = self.get_sg[0](waveform)
@@ -113,9 +118,9 @@ class Noiser:
 
         a = abs(sg_fft1)
         k = int(sg_fft1.shape[0] * sg_fft1.shape[1] * (1 - part))
-        ap = np.partition(a, k, axis=None)
-
-        sg_fft0[a < ap[k]] = 0
+        ap = np.partition(a, k, axis=None)[k]
+        a[:, 0] = ap
+        sg_fft0[a < ap] = 0
 
         isg = np.fft.ifft(sg_fft0, axis=-1)
         isg = np.real(isg)
