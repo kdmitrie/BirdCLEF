@@ -58,8 +58,8 @@ class BirdTransformer(torch.nn.Module):
             self.forward = self.forward_segmentation
 
     def segmentation(self, x):
-        if self.augmentations and self.training:
-            x = self.augmentations(x)
+        if self.augmentations:
+            x = self.augmentations(x, self)
         x = x.to(CFG.device)
         y = self.encoder(x)
         y = self.head(y)
