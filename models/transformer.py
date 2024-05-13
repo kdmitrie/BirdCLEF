@@ -6,10 +6,10 @@ from ..bird.config import CFG
 
 
 class AttnBlock(torch.nn.Module):
-    def __init__(self, n=512, nheads=8):
+    def __init__(self, embed_dim=512, num_heads=8):
         super().__init__()
-        self.attn = torch.nn.MultiheadAttention(n, nheads)
-        self.norm = torch.nn.LayerNorm(n)
+        self.attn = torch.nn.MultiheadAttention(embed_dim, num_heads)
+        self.norm = torch.nn.LayerNorm(embed_dim)
         self.drop = torch.nn.Dropout(0.2)
 
     def forward(self, x):
@@ -24,20 +24,19 @@ class BirdTransformer(torch.nn.Module):
     augmentations: Optional[Callable] = None
     predict_last: bool = False
 
-    def __init__(self, backbone='resnet18', num_classes=1, task='classification'):
+    def __init__(self, backbone='resnet18', num_classes=1, task='classification', embed_dim=768, num_heads=8, att_blocks=2):
         super().__init__()
 
         backbone = timm.create_model(backbone, pretrained=True, in_chans=1)
-        nh = 768
 
         enc_features = list(backbone.children())[-1].in_features
         self.encoder = torch.nn.Sequential(*list(backbone.children())[:-2])
 
+        att_blocks = [AttnBlock(embed_dim, num_heads) for _ in range(att_blocks)]
         self.head = torch.nn.Sequential(
-            torch.nn.Conv2d(enc_features, nh, (CFG.sg['mel_bins'] // 32, 1)),
-            AttnBlock(nh),
-            AttnBlock(nh),
-            torch.nn.Conv2d(nh, num_classes, 1),
+            torch.nn.Conv2d(enc_features, embed_dim, (CFG.sg['mel_bins'] // 32, 1)),
+            *att_blocks,
+            torch.nn.Conv2d(embed_dim, num_classes, 1),
         )
 
         self.seg_head = torch.nn.Sequential(
