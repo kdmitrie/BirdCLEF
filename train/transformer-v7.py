@@ -344,3 +344,6 @@ def train_backbone(backbone, nn_model=None):
                            device=CFG.device)
 
     trainer(nn_model, EPOCHS)
+
+train_backbone(BACKBONE, nn_model=None)
+
