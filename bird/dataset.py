@@ -135,10 +135,11 @@ class BirdDataset(torch.utils.data.Dataset):
 
 
 class MixedBirdDataset(torch.utils.data.Dataset):
-    def __init__(self, base_dataset, p=0.5):
+    def __init__(self, base_dataset, p=0.5, clip_last=False):
         self.base_dataset = base_dataset
         self.p = p
         self.len = len(base_dataset)
+        self.clip_last = clip_last
 
     def __len__(self):
         return self.len
@@ -157,5 +158,8 @@ class MixedBirdDataset(torch.utils.data.Dataset):
 
         data = (data1 + data2) / 2
         label = np.clip(label1 + label2, a_min=0, a_max=1)
+
+        if not self.clip_last:
+            label[-1] = label1[-1] + label2[-1]
 
         return data, label
