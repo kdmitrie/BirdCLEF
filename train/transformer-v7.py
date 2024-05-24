@@ -301,7 +301,7 @@ class FocalLossWithWeight(torch.nn.Module):
 
         wloss = loss * weights
 
-        return n * loss.mean() if reduction == 'mean' else loss
+        return n * wloss.mean() if reduction == 'mean' else wloss
 
 
 class ModelROCAUCWithWeight(ModelROCAUC):
