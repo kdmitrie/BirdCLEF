@@ -5,8 +5,8 @@ import os
 import pandas as pd
 import torch
 
-from bird.dataset import BirdDataset
-from bird.config import CFG
+from ..bird.dataset import BirdDataset
+from ..bird.config import CFG
 
 
 class Noiser:
