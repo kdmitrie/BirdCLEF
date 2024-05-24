@@ -1,3 +1,4 @@
+import os
 import torch
 
 
@@ -17,6 +18,7 @@ class CFG:
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device("cpu")
     model_type = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
     num_epochs = 10
+    interactive = os.environ.get('KAGGLE_KERNEL_RUN_TYPE', '') == 'Interactive'
 
     p = 0.5
 
@@ -30,12 +32,21 @@ class CFG:
         'top_db': 80.0
     }
 
-    # noiser = {
-    #    'nocalls': '/kaggle/input/bc23-dataset-without-birds/nocalls.pkl',
-    #    'spectra': '/kaggle/input/bc23-dataset-without-birds/noise_spectra.pkl',
-    #    'p': 0.5,
-    #    'A': 0.01
-    # }
+    simple_noiser = {
+        'nocalls': '/kaggle/input/bc23-dataset-without-birds/nocalls.pkl',
+        'spectra': '/kaggle/input/bc23-dataset-without-birds/noise_spectra.pkl',
+        'duration': 30,
+        'p': 0.25,
+        'A': 1.0
+    }
+
+    froger = {
+        'FS': 32000,
+        'duration': 30,
+        'frogs_path': '/kaggle/input/rain-forrest-frogs/frogs.pkl',
+        'p': 0.25,
+        'A': 1.0,
+    }
 
     aug_params = {
         "num_masks_x": (2, 10),
@@ -47,7 +58,6 @@ class CFG:
     }
 
     noiser = {
-
         'voice_csv': '/kaggle/input/bc24-add-noise/hindi-speech-classification/dataset/train.csv',
         'voice_path': '/kaggle/input/bc24-add-noise/hindi-speech-classification/dataset/train',
         'voice_p': 0.1,
