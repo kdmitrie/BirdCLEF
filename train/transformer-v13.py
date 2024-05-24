@@ -89,7 +89,7 @@ CFG.min_duration = DURATION
 CFG.simple_noiser['duration'] = CFG.min_duration
 CFG.froger['duration'] = CFG.min_duration
 CFG.train_csv = f'/kaggle/input/bc24-audio-loop-{CFG.min_duration}sec-dataset/train_metadata.csv'
-spectrograms_pkl = f'/kaggle/input/bc24-audio-loop-{CFG.min_duration}sec-dataset/ALL_t_40_fs_32000.pkl'
+spectrograms_pkl = f'/kaggle/input/bc24-audio-loop-{CFG.min_duration}sec-dataset/ALL_t_{CFG.min_duration}_fs_32000.pkl'
 noise_mixer_npy = f'/kaggle/input/bc24-noise-generator-{CFG.min_duration}sec-1/noise_images_1.npy'
 
 # %% [markdown]
