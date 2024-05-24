@@ -254,7 +254,7 @@ def augmentations(batch, model):
 # %% [code] {"execution":{"iopub.status.busy":"2024-05-19T16:38:30.917224Z","iopub.execute_input":"2024-05-19T16:38:30.917693Z","iopub.status.idle":"2024-05-19T16:38:30.931832Z","shell.execute_reply.started":"2024-05-19T16:38:30.917656Z","shell.execute_reply":"2024-05-19T16:38:30.930328Z"}}
 # Test the augmentations
 
-x1 = val_ds[100][0]
+x1 = train_ds[100][0]
 x2 = augmentations([x1], None)
 
 # %% [code] {"execution":{"iopub.status.busy":"2024-05-19T16:38:32.236224Z","iopub.execute_input":"2024-05-19T16:38:32.236682Z","iopub.status.idle":"2024-05-19T16:38:33.689938Z","shell.execute_reply.started":"2024-05-19T16:38:32.236647Z","shell.execute_reply":"2024-05-19T16:38:33.688594Z"}}
