@@ -1,4 +1,3 @@
-import sys
 import torch
 from ..bird.config import CFG
 
