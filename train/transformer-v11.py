@@ -1,8 +1,9 @@
 import sys
 
-PREFIX, BACKBONE, PART, EPOCHS = sys.argv[1:]
+PREFIX, BACKBONE, PART, EPOCHS, SEED = sys.argv[1:]
 PART = float(PART)
 EPOCHS = int(EPOCHS)
+SEED = int(SEED)
 
 print(sys.argv[1:])
 
@@ -33,7 +34,50 @@ def seed_all(seed=42):
     torch.backends.cudnn.benchmark = False
 
 
-seed_all()
+seed_all(seed=SEED)
+
+if 'torch_xla' not in sys.modules:
+    print('Trying import torch_xla')
+
+    try:
+        import torch_xla
+        import torch_xla.core.xla_model as xm
+        import torch_xla.utils.utils as xu
+        import torch_xla.distributed.parallel_loader as pl
+        import torch_xla.distributed.xla_multiprocessing as xmp
+
+
+        class ModelTrainerXLA(ModelTrainer):
+
+            def _backward_pass_train(self, model, loss_value):
+                """Trains the model and returns an array of loss values"""
+
+                # 1. We reset the gradient values ...
+                self.optimizer.zero_grad()
+
+                # 2. ... and calculate the new gradient values
+                loss_value.backward()
+
+                if self.max_clip_grad_norm > 0:
+                    torch.nn.utils.clip_grad_norm_(model.parameters(), self.max_clip_grad_norm)
+
+                # 3. Then we renew the model parameters
+                self.optimizer.step()
+
+                # 4. For TPU
+                xm.mark_step()
+                # or
+                # xm.optimizer_step(self.optimizer, barrier=True)
+
+                return loss_value.detach().cpu().numpy()
+
+
+        ModelTrainer = ModelTrainerXLA
+        CFG.device = xm.xla_device()
+
+        print('\ttorch_xla successfuly imported')
+    except ImportError:
+        print('\ttorch_xla cannot be imported')
 
 # %% [markdown]
 # # Config
