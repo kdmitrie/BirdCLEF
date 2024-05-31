@@ -1,8 +1,9 @@
 import sys
 
-PREFIX, BACKBONE, DURATION, EPOCHS = sys.argv[1:]
+PREFIX, BACKBONE, DURATION, EPOCHS, HEADS = sys.argv[1:]
 DURATION = int(DURATION)
 EPOCHS = int(EPOCHS)
+HEADS = int(HEADS)
 
 print(sys.argv[1:])
 
@@ -272,7 +273,7 @@ class ModelROCAUCWithWeight(ModelROCAUC):
 def train_backbone(backbone, nn_model=None):
     if nn_model is None:
         print(f'\n\n!!! Creating new {backbone} model\n\n')
-        nn_model = BirdTransformer(backbone=backbone, num_classes=CFG.num_classes)
+        nn_model = BirdTransformer(backbone=backbone, num_classes=CFG.num_classes, num_heads=HEADS)
 
     nn_model.augmentations = augmentations
     nn_model.to(CFG.device)
