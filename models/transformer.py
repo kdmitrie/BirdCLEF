@@ -24,10 +24,11 @@ class BirdTransformer(torch.nn.Module):
     augmentations: Optional[Callable] = None
     predict_last: bool = False
 
-    def __init__(self, backbone='resnet18', num_classes=1, task='classification', embed_dim=768, num_heads=8, att_blocks=2):
+    def __init__(self, backbone='resnet18', num_classes=1, task='classification',
+                 embed_dim=768, num_heads=8, att_blocks=2, pretrained=True):
         super().__init__()
 
-        backbone = timm.create_model(backbone, pretrained=True, in_chans=1)
+        backbone = timm.create_model(backbone, pretrained=pretrained, in_chans=1)
 
         enc_features = list(backbone.children())[-1].in_features
         self.encoder = torch.nn.Sequential(*list(backbone.children())[:-2])
